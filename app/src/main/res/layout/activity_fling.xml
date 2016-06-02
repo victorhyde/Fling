@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context="com.example.victor.fling.FlingActivity">
+
+    <com.example.victor.fling.MySurfaceView
+        android:id="@+id/surfaceView1"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"/>
+
+    <ImageButton
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginLeft="30dp"
+        android:id="@+id/pause"
+        android:src="@drawable/pause"
+        android:layout_gravity="center_horizontal"
+        android:layout_alignParentBottom="true"
+        android:layout_toEndOf="@+id/hint"
+        style="?android:attr/borderlessButtonStyle"/>
+
+    <ImageButton
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
+        android:src="@drawable/hint"
+        android:layout_gravity="center_horizontal"
+        android:id="@+id/hint"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        style="?android:attr/borderlessButtonStyle"/>
+
+    <ImageButton
+        android:layout_width="50dp"
+        android:layout_height="50dp"
+        android:layout_marginBottom="20dp"
+        android:layout_marginRight="30dp"
+        android:src="@drawable/undo"
+        android:id="@+id/undo"
+        android:layout_gravity="center_horizontal"
+        android:layout_alignTop="@+id/hint"
+        android:layout_toStartOf="@+id/hint"
+        style="?android:attr/borderlessButtonStyle"/>
+
+</RelativeLayout>
