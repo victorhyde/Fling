@@ -167,6 +167,7 @@ public class MySurfaceView extends SurfaceView implements
 
     public void createLevel(int numBalls) {
         System.out.println("test");
+        System.out.println("another one");
         boolean solvable = false;
         int x, y;
         int[] colours = {R.color.red, R.color.pink, R.color.purple, R.color.deep_purple, R.color.indigo, R.color.blue, R.color.teal, R.color.green, R.color.amber, R.color.orange};
