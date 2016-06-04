@@ -79,7 +79,7 @@ public class MySurfaceView extends SurfaceView implements
     private boolean isDone;
     private boolean canDraw;
 
-    private Thread thread;
+//    private Thread thread;
     private Thread drawThread;
 
     public MySurfaceView(Context context) {
@@ -116,11 +116,11 @@ public class MySurfaceView extends SurfaceView implements
         BOARD_X = (WINDOW_WIDTH - WIDTH) / 2;
         BOARD_Y = (WINDOW_HEIGHT - WIDTH) / 2;
         SPACE_WIDTH = WIDTH / GRID_SQUARES;
-        ACCELERATION = SPACE_WIDTH/1700.0;
+        ACCELERATION = SPACE_WIDTH/2400.0;
         BALL_WIDTH = SPACE_WIDTH * 3 / 4;
         MARGIN = (SPACE_WIDTH - BALL_WIDTH) / 2;
         BOARD = new Rect(0, 0, WINDOW_WIDTH, WINDOW_HEIGHT);
-        STOP_DISTANCE = MARGIN * 5 / 2;
+        STOP_DISTANCE = MARGIN * 7/3;
         SPEED_BEFORE_STOPPING = Math.sqrt(2 * ACCELERATION * STOP_DISTANCE);
         BALL_STOP_FRAMES = (int) (Math.floor(SPEED_BEFORE_STOPPING / ACCELERATION));
         MIN_DISTANCE = SPACE_WIDTH;
@@ -135,9 +135,6 @@ public class MySurfaceView extends SurfaceView implements
 
         smallFont = BOARD_Y/8;
         bigFont = BOARD_Y/6;
-        Toast.makeText(getContext(), "SPACE WIDTH " + SPACE_WIDTH,
-                Toast.LENGTH_LONG).show();
-
         movingBall = null;
         pastMoves = new LinkedList<Move>();
         createLevel(numBalls);
@@ -170,7 +167,7 @@ public class MySurfaceView extends SurfaceView implements
         System.out.println("another one");
         boolean solvable = false;
         int x, y;
-        int[] colours = {R.color.red, R.color.pink, R.color.purple, R.color.deep_purple, R.color.indigo, R.color.blue, R.color.teal, R.color.green, R.color.amber, R.color.orange};
+        int[] colours = {R.color.red, R.color.pink, R.color.purple, R.color.deep_purple, R.color.indigo, R.color.blue, R.color.teal, R.color.green, /*R.color.amber,*/ R.color.orange};
         while (!solvable) {
             allBalls.clear();
             for (int ball = 0; ball < numBalls; ball++) {
@@ -213,6 +210,9 @@ public class MySurfaceView extends SurfaceView implements
                     if (checkBall.contains(new Point((int) x1, (int) y1))) {
                         movingBall = checkBall;
                         movingBall.lighten(-40);
+                        Highlight highlight = new Highlight(movingBall);
+                        Thread highlightThread= new Thread(highlight);
+                        highlightThread.start();
                     }
                 }
                 break;
@@ -292,14 +292,15 @@ public class MySurfaceView extends SurfaceView implements
                 }
                 movingBall.setPosition(startingPosition.x, startingPosition.y);
                 // Fling the ball if possible
-                if (canFling(movingBall, direction)) {
+                Ball otherBall = checkCollision(movingBall, direction);
+                if (otherBall!=null) {
                     pastMoves.push(new Move(allBalls, movingBall, direction));
                     ((ImageButton) ((FlingActivity) getContext()).findViewById(R.id.undo)).setImageAlpha(255);
                     (movingBall).resetSpeed();
                     // Start a new thread so the timer doesn't stop, and so the player can still interact with the window
-                    Fling nextFling = new Fling(movingBall, direction, false);
-                    thread = new Thread(nextFling);
-                    thread.start();
+                    Fling nextFling = new Fling(movingBall, direction, otherBall);
+                    Thread fling = new Thread(nextFling);
+                    fling.start();
                 } else {
                     // Fake transparent ball illustrating a bad move
                     Ball fakePath = new Ball(movingBall);
@@ -307,9 +308,9 @@ public class MySurfaceView extends SurfaceView implements
                     synchronized (allBalls) {
                         allBalls.add(fakePath);
                     }
-                    Fling nextFling = new Fling(fakePath, direction, true);
-                    thread = new Thread(nextFling);
-                    thread.start();
+                    Fling nextFling = new Fling(fakePath, direction,null);
+                    Thread fling = new Thread(nextFling);
+                    fling.start();
                 }
                 movingBall = null;
                 break;
@@ -318,7 +319,7 @@ public class MySurfaceView extends SurfaceView implements
     }
 
     public void onDraw(Canvas canvas) {
-        canvas.drawColor(Color.rgb(230, 230, 235));
+        canvas.drawColor(ContextCompat.getColor(getContext(),R.color.background));//Color.rgb(230, 230, 235));
         paint.setColor(Color.rgb(0, 0, 0));
 
         paint.setTextAlign(Paint.Align.LEFT);
@@ -341,7 +342,9 @@ public class MySurfaceView extends SurfaceView implements
             }
         }
 
-        paint.setColor(Color.rgb(210, 210, 210));
+        paint.setColor(Color.rgb(200, 200, 205));
+//        canvas.drawLine(BOARD_X,BOARD_Y*3/4,WINDOW_WIDTH-BOARD_X,BOARD_Y*3/4,paint);
+//        canvas.drawLine(BOARD_X,WINDOW_HEIGHT-BOARD_Y*3/4,WINDOW_WIDTH-BOARD_X,WINDOW_HEIGHT-BOARD_Y*3/4,paint);
         for (int row = 0; row < WIDTH - 5; row += SPACE_WIDTH) {
             for (int col = 0; col < WIDTH - 5; col += SPACE_WIDTH) {
 
@@ -354,8 +357,10 @@ public class MySurfaceView extends SurfaceView implements
             synchronized (allBalls) {
                 for (Ball thisBall : allBalls) {
                     if (thisBall.intersects(BOARD)) {
+//                        paint.setColor(Color.rgb(120,120,120));
+//                        canvas.drawCircle(thisBall.getX() + thisBall.ballWidth / 2+MARGIN/4, thisBall.getY() + thisBall.ballWidth / 2+MARGIN/4, thisBall.ballWidth / 2, paint);
                         paint.setColor(thisBall.ballColor());
-                        canvas.drawCircle(thisBall.getX() + thisBall.ballWidth / 2, thisBall.getY() + thisBall.ballWidth / 2, thisBall.ballWidth / 2, paint);
+                        canvas.drawCircle(thisBall.getX() + BALL_WIDTH / 2, thisBall.getY() + BALL_WIDTH / 2, thisBall.ballWidth / 2, paint);
                     }
                 }
             }
@@ -363,17 +368,24 @@ public class MySurfaceView extends SurfaceView implements
     }
 
 
-    public boolean canFling(Ball thisBall, int direction) {
+    /**checks how far you can fling the ball in a certain direction
+     *
+     * @param thisBall the ball to fling
+     * @param direction
+     * @return -1 if you can't fling the ball
+     */
+    public Ball checkCollision(Ball thisBall, int direction) {
         // Directly in line with this piece
 
         // Should check if a Ball is right beside it. The oneSquareMoved
         // boolean aids in this check
-        boolean oneSquareMoved = true;
+//        int squaresMoved =0;
         Point startingPosition = new Point(thisBall.getX(), thisBall.getY());
         Rect boardArea = new Rect(BOARD_X, BOARD_Y, BOARD_X + WIDTH, BOARD_Y + WIDTH);
         while (thisBall.intersects(boardArea)) {
             // Moves the Ball behind the scenes
             thisBall.move(direction);
+//            squaresMoved++;
             // Checks all of the other Balls on the board and sees if
             // thisBall now collides (a bump) with another Ball
             for (Ball otherBall : allBalls) {
@@ -383,14 +395,16 @@ public class MySurfaceView extends SurfaceView implements
                         && thisBall != otherBall) {
                     thisBall.setPosition(startingPosition.x, startingPosition.y);
                     // Return false if it bumped into a Ball right beside it
-                    return !oneSquareMoved;
+//                    if (squaresMoved==1)
+//                        return null;
+//                    else
+                        return otherBall;
                 }
             }
-            oneSquareMoved = false;
         }
         //Move it back to the original spot
         thisBall.setPosition(startingPosition.x, startingPosition.y);
-        return false;
+        return null;
     }
 
     /**
@@ -402,24 +416,24 @@ public class MySurfaceView extends SurfaceView implements
      */
     public void flingNoAnimate(Ball thisBall, int direction) {
         // Should check if a Ball is right beside it
-            while (thisBall.intersects(BOARD)) {
-                Point previousSpot = new Point(thisBall.getX(), thisBall.getY());
-                thisBall.move(direction);
-                for (Ball otherBall : allBalls) {
-                    if (thisBall.collides(otherBall)
-                            && thisBall != otherBall) {
-                        // Move it back in true
-                        // flingNoAnimate bumped Ball
-                        thisBall.setPosition(previousSpot.x, previousSpot.y);
-                        flingNoAnimate(otherBall, direction);
+        while (thisBall.intersects(BOARD)) {
+            Point previousSpot = new Point(thisBall.getX(), thisBall.getY());
+            thisBall.move(direction);
+            for (Ball otherBall : allBalls) {
+                if (thisBall.collides(otherBall)
+                        && thisBall != otherBall) {
+                    // Move it back in true
+                    // flingNoAnimate bumped Ball
+                    thisBall.setPosition(previousSpot.x, previousSpot.y);
+                    flingNoAnimate(otherBall, direction);
 
-                        return;
-                    }
+                    return;
                 }
             }
-            synchronized (allBalls) {
-                allBalls.remove(thisBall);
-            }
+        }
+        synchronized (allBalls) {
+            allBalls.remove(thisBall);
+        }
 
     }
 
@@ -430,63 +444,57 @@ public class MySurfaceView extends SurfaceView implements
      *
      * @param thisBall  The ball to be flung
      * @param direction The direction the ball is to be flung
+     *                  @param otherBall What this ball will eventually collide with
      */
-    public void fling(Ball thisBall, int direction) {
-        while (thisBall.intersects(BOARD)) {
-            // Animate the ball's movement
-            animate(thisBall, direction, ACCELERATION);
-            for (Ball otherBall : allBalls) {
-                if (thisBall.collides(otherBall) && thisBall != otherBall) {
-                    // If it bumps into something else
-                    // Round the ball's position to keep it aligned with the grid
-                    if (direction == Ball.OUT_BOTTOM) {
-                        thisBall.setPosition(thisBall.getX(), (int) Math
-                                .floor((thisBall.getY() - BOARD_Y) / (SPACE_WIDTH * 1.0))
-                                * SPACE_WIDTH
-                                + BOARD_Y + MARGIN + STOP_DISTANCE);
-                    } else if (direction == Ball.OUT_TOP) {
-                        thisBall.setPosition(thisBall.getX(), (int) Math
-                                .ceil((thisBall.getY() - BOARD_Y) / (SPACE_WIDTH * 1.0))
-                                * SPACE_WIDTH
-                                + BOARD_Y + MARGIN - STOP_DISTANCE);
-                    } else if (direction == Ball.OUT_LEFT) {
-                        thisBall.setPosition((int) Math
-                                .ceil((thisBall.getX() - BOARD_X) / (SPACE_WIDTH * 1.0))
-                                * SPACE_WIDTH
-                                + BOARD_X + MARGIN - STOP_DISTANCE, thisBall.getY());
-                    } else if (direction == Ball.OUT_RIGHT) {
-                        thisBall.setPosition((int) Math
-                                .floor((thisBall.getX() - BOARD_X) / (SPACE_WIDTH * 1.0))
-                                * SPACE_WIDTH
-                                + BOARD_X + MARGIN + STOP_DISTANCE, thisBall.getY());
-                    }
-                    // Bump another ball
-                    delay(DELAY_TIME * 10);
-                    bump(thisBall, otherBall, direction);
-                    return;
-                }
-            }
-
-            // DRAW CALL/ANIMATION
-
+    public void fling(Ball thisBall, int direction, Ball otherBall) {
+        canInteract = false;
+        int distance = Math.max(Math.abs(thisBall.getX()-otherBall.getX()),Math.abs(thisBall.getY()-otherBall.getY()));
+        distance-=BALL_WIDTH;
+        int flingTime = (int)Math.sqrt(2*distance/ACCELERATION);
+        double xAccel;
+        double yAccel;
+        int xStart = thisBall.getX();
+        int yStart=thisBall.getY();
+        if (direction == Ball.OUT_RIGHT) {
+            xAccel = ACCELERATION;
+            yAccel=0;
+        } else if (direction == Ball.OUT_BOTTOM) {
+            xAccel = 0;
+            yAccel=ACCELERATION;
+        } else if (direction == Ball.OUT_LEFT) {
+            xAccel = -ACCELERATION;
+            yAccel=0;
+        } else {
+            xAccel = 0;
+            yAccel=-ACCELERATION;
+        }
+        for (int t =0; t<=flingTime;t++) {
+            thisBall.setPosition(xStart+(int)(xAccel/2*t*t),yStart+(int)(yAccel/2*t*t));
             delay(DELAY_TIME);
         }
-        // Removes the ball from allBalls if it is no longer on the board
-        if (!thisBall.intersects(BOARD)) {
-            synchronized (allBalls) {
-                allBalls.remove(thisBall);
-            }
+        // If it bumps into something else
+        // Round the ball's position to keep it aligned with the grid
+        if (direction == Ball.OUT_BOTTOM) {
+            thisBall.setPosition(otherBall.getX(),otherBall.getY()-SPACE_WIDTH+STOP_DISTANCE);
+        } else if (direction == Ball.OUT_TOP) {
+            thisBall.setPosition(otherBall.getX(),otherBall.getY()+SPACE_WIDTH-STOP_DISTANCE);
+        } else if (direction == Ball.OUT_LEFT) {
+            thisBall.setPosition(otherBall.getX()+SPACE_WIDTH-STOP_DISTANCE,otherBall.getY());
+        } else if (direction == Ball.OUT_RIGHT) {
+            thisBall.setPosition(otherBall.getX()-SPACE_WIDTH+STOP_DISTANCE,otherBall.getY());
+        }
+        // Bump another ball
+        delay(DELAY_TIME * 10);
+        bump(thisBall, otherBall, direction);
         }
 
-    }
-
-    /**
-     * This method pops the LinkedList of pastMoves, and resets the Balls on
-     * the board to the Balls that were present in the time before this move was
-     * made
-     *
-     * @author Jonathan
-     */
+        /**
+         * This method pops the LinkedList of pastMoves, and resets the Balls on
+         * the board to the Balls that were present in the time before this move was
+         * made
+         *
+         * @author Jonathan
+         */
     public void undo()
     // Undo may possibly be not adjusting the positions of the
     {
@@ -541,31 +549,16 @@ public class MySurfaceView extends SurfaceView implements
     }
 
     /**
-     * This assumes you've already checked if you can fling, so this method
-     * flings the given ball in the given direction.
+     * Calling the method with no distance parameter assumes that the ball won't collide with any other balls and
+     * will make the ball travel until it leaves the map
      *
      * @param thisBall  The Ball object that will be flung
      * @param direction The Ball standard integer value of the direction
      *                  the ball should be flung
-     * @param fake      A boolean value stating whether this is a fake ball (one
-     *                  indicating an invalid move) or a real Ball
+     *
      */
-    public void fling(Ball thisBall, int direction, boolean fake) {
-        // If you fling diagonally, don't do anything
-        if (direction != Ball.OUT_RIGHT
-                && direction != Ball.OUT_LEFT
-                && direction != Ball.OUT_TOP
-                && direction != Ball.OUT_BOTTOM) {
-            synchronized (allBalls) {
-                allBalls.remove(thisBall);
-            }
-            return;
-        }
-        if (!fake) {
-            fling(thisBall, direction);
-            return;
-        }
-
+    public void fling(Ball thisBall, int direction) {
+        canInteract = false;
         while (thisBall.intersects(BOARD)) {
             animate(thisBall, direction, ACCELERATION);
             // Update the position based on the direction
@@ -574,11 +567,10 @@ public class MySurfaceView extends SurfaceView implements
 
             delay(DELAY_TIME);
         }
-        if (!thisBall.intersects(BOARD)) {
-            synchronized (allBalls) {
-                allBalls.remove(thisBall);
-            }
+        synchronized (allBalls) {
+            allBalls.remove(thisBall);
         }
+        canInteract = true;
     }
 
     /**
@@ -592,6 +584,7 @@ public class MySurfaceView extends SurfaceView implements
     public void bump(Ball thisBall, Ball otherBall, int direction) {
         thisBall.setSpeed(SPEED_BEFORE_STOPPING);
         otherBall.resetSpeed();
+        Ball nextBall = checkCollision(otherBall, direction);
         int otherDirection;
         if (direction == Ball.OUT_BOTTOM)
             otherDirection = Ball.OUT_TOP;
@@ -602,6 +595,9 @@ public class MySurfaceView extends SurfaceView implements
         else
             otherDirection = Ball.OUT_LEFT;
 
+        Fling nextFling = new Fling(otherBall, direction, nextBall);
+        Thread fling = new Thread(nextFling);
+        fling.start();
         //Animate the ball bouncing back to its position
         for (int i = 0; i < BALL_STOP_FRAMES; i++) {
             animate(thisBall, otherDirection, -1 * ACCELERATION);
@@ -614,7 +610,6 @@ public class MySurfaceView extends SurfaceView implements
                 + BOARD_X + MARGIN, (int) Math.round((thisBall.getY() - BOARD_Y) / (SPACE_WIDTH * 1.0))
                 * SPACE_WIDTH
                 + BOARD_Y + MARGIN);
-        fling(otherBall, direction);
     }
 
     public void checkForWin() {
@@ -672,12 +667,13 @@ public class MySurfaceView extends SurfaceView implements
                     movedBall = otherBall;
             }
             canDraw = true;
-            Fling nextFling = new Fling(movedBall, firstMove.direction, false);
+            Ball otherBall = checkCollision(movedBall, firstMove.direction);
+            Fling nextFling = new Fling(movedBall, firstMove.direction, otherBall);
             ShowPenalty showPenalty = new ShowPenalty(penalties);
             Thread penaltyThread = new Thread(showPenalty);
             penaltyThread.start();
-            thread = new Thread(nextFling);
-            thread.start();
+            Thread fling = new Thread(nextFling);
+            fling.start();
         }
     }
 
@@ -728,7 +724,15 @@ public class MySurfaceView extends SurfaceView implements
         for (int index = 0; index < allBalls.size(); index++) {
             for (int direction = 1; direction <= 8; direction *= 2) {
                 Ball thisBall = allBalls.get(index);
-                if (canFling(thisBall, direction)) {
+                Ball otherBall = checkCollision(thisBall, direction);
+                Point startingPosition = new Point(thisBall.getX(), thisBall.getY());
+                // Show an animation if theres a ball directly adjacent to this one
+                thisBall.move(direction);
+                    if (otherBall!=null&&thisBall.collides(otherBall)){
+                        otherBall=null;
+                    }
+                thisBall.setPosition(startingPosition.x, startingPosition.y);
+                if (otherBall!=null) {
                     // Get a copy of the board before move
                     Move startBoard = new Move(allBalls, thisBall,
                             direction);
@@ -773,8 +777,8 @@ public class MySurfaceView extends SurfaceView implements
      */
     public boolean isSolvable() {
         for (Ball thisBall : allBalls) {
-                if (!thisBall.couldFling(allBalls))
-                    return false;
+            if (!thisBall.couldFling(allBalls))
+                return false;
         }
         return true;
     }
@@ -807,7 +811,7 @@ public class MySurfaceView extends SurfaceView implements
 
     private class Fling implements Runnable {
 
-        boolean fake;
+        private Ball otherBall;
         private Ball thisBall;
         private int direction;
 
@@ -816,21 +820,21 @@ public class MySurfaceView extends SurfaceView implements
          *
          * @param thisBall  The ball to fling
          * @param direction The direction to fling it
-         * @param fake      True if it's a fake fling, false if it's not
+         * @param otherBall the ball to collide with
          */
-        public Fling(Ball thisBall, int direction, boolean fake) {
+        public Fling(Ball thisBall, int direction, Ball otherBall) {
             this.thisBall = thisBall;
             this.direction = direction;
-            this.fake = fake;
+            this.otherBall = otherBall;
         }
 
         /**
          * Runs the new thread
          */
         public void run() {
-            canInteract = false;
-            fling(thisBall, direction, fake);
-            canInteract = true;
+            if (otherBall!=null)
+            fling(thisBall, direction, otherBall);
+            else fling(thisBall, direction);
             checkForWin();
         }
 
@@ -839,8 +843,8 @@ public class MySurfaceView extends SurfaceView implements
     private class ShowPenalty implements Runnable {
         int position;
         public ShowPenalty(List<Integer> penalties) {
-                penalties.add(0);
-                position = penalties.size() - 1;
+            penalties.add(0);
+            position = penalties.size() - 1;
         }
 
         /**
@@ -849,12 +853,34 @@ public class MySurfaceView extends SurfaceView implements
         public void run() {
             addPenalty = true;
             delay(500);
-                for (int i = 0; i < 127; i++) {
-                    penalties.set(position, i);
-                    delay(2);
-                }
+            for (int i = 0; i < 127; i++) {
+                penalties.set(position, i);
+                delay(2);
+            }
             if (penalties.size()==position+1)
                 penalties.clear();
+        }
+
+    }
+
+    /**makes the ball grow and shrink rapidly
+     *
+     */
+    private class Highlight implements Runnable {
+        Ball ball;
+        int speed=30;
+        public Highlight(Ball ball) {
+            this.ball=ball;
+        }
+
+        /**
+         * Runs the new thread
+         */
+        public void run() {
+            for(int t=-speed;t<=speed;t++){
+                ball.ballWidth=BALL_WIDTH+(int)((speed*speed-t*t)*1.0/(speed*speed)*MARGIN);
+                delay(2);
+            }
         }
 
     }
@@ -862,12 +888,14 @@ public class MySurfaceView extends SurfaceView implements
     class DrawThread extends Thread {
         long startTime;
         long currentTime;
+        long lastDrawTime;
         MySurfaceView mySurfaceView;
         private SurfaceHolder surfaceHolder;
 
         public DrawThread(SurfaceHolder surfaceHolder,
                           MySurfaceView mySurfaceView) {
             startTime = System.currentTimeMillis();
+            lastDrawTime = startTime;
             this.surfaceHolder = surfaceHolder;
             this.mySurfaceView = mySurfaceView;
         }
@@ -877,28 +905,32 @@ public class MySurfaceView extends SurfaceView implements
         public void run() {
             Canvas canvas = null;
             while (!isDone) {
-                if (!paused) {
-                    if (addPenalty){
-                        time+=10;
-                        addPenalty = false;
-                        timeString = String.format("%d:%02d", time / 60, time % 60);
-                    }
-                    currentTime = System.currentTimeMillis();
-                    if (currentTime - startTime >= 1000) {
-                        startTime = currentTime;
-                        time++;
-                        timeString = String.format("%d:%02d", time / 60, time % 60);
-                    }
-                }
-                if (canDraw) {
-                    try {
-                        canvas = surfaceHolder.lockCanvas(null);
-                        synchronized (surfaceHolder) {
-                            mySurfaceView.onDraw(canvas);
+                currentTime = System.currentTimeMillis();
+                if (currentTime - lastDrawTime >= 17) {
+                    lastDrawTime = currentTime;
+                    if (!paused) {
+                        if (addPenalty) {
+                            time += 10;
+                            addPenalty = false;
+                            timeString = String.format("%d:%02d", time / 60, time % 60);
                         }
-                    } finally {
-                        if (canvas != null) {
-                            surfaceHolder.unlockCanvasAndPost(canvas);
+                        if (currentTime - startTime >= 1000) {
+                            startTime = currentTime;
+                            time++;
+                            timeString = String.format("%d:%02d", time / 60, time % 60);
+                        }
+                    }
+                    if (canDraw) {
+                        try {
+                            canvas = surfaceHolder.lockCanvas(null);
+                            synchronized (surfaceHolder) {
+                                mySurfaceView.onDraw(canvas);
+//                                delay(2);
+                            }
+                        } finally {
+                            if (canvas != null) {
+                                surfaceHolder.unlockCanvasAndPost(canvas);
+                            }
                         }
                     }
                 }

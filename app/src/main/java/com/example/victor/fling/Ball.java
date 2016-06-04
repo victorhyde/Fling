@@ -83,7 +83,7 @@ public class Ball{
     public Ball (Ball other)
     {
         this.spaceWidth=other.spaceWidth;
-        this.ballWidth=other.ballWidth;
+        this.ballWidth=this.spaceWidth*3/4;
         this.margin=other.margin;
         rect = new Rect(other.rect);
 //        super(new Point(other.x, other.y), other.width);
