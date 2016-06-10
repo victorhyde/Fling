@@ -23,7 +23,7 @@ import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-public class MySurfaceView extends SurfaceView implements
+public class FlingSurfaceView extends SurfaceView implements
         SurfaceHolder.Callback {
     // Timer variables
 
@@ -82,17 +82,17 @@ public class MySurfaceView extends SurfaceView implements
 //    private Thread thread;
     private Thread drawThread;
 
-    public MySurfaceView(Context context) {
+    public FlingSurfaceView(Context context) {
         super(context);
         initialize();
     }
 
-    public MySurfaceView(Context context, AttributeSet attrs) {
+    public FlingSurfaceView(Context context, AttributeSet attrs) {
         super(context, attrs);
         initialize();
     }
 
-    public MySurfaceView(Context context, AttributeSet attrs, int defStyle) {
+    public FlingSurfaceView(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         initialize();
     }
@@ -163,24 +163,19 @@ public class MySurfaceView extends SurfaceView implements
     }
 
     public void createLevel(int numBalls) {
-        System.out.println("test");
-        System.out.println("another one");
         boolean solvable = false;
         int x, y;
         int[] colours = {R.color.red, R.color.pink, R.color.purple, R.color.deep_purple, R.color.indigo, R.color.blue, R.color.teal, R.color.green, /*R.color.amber,*/ R.color.orange};
         while (!solvable) {
             allBalls.clear();
             for (int ball = 0; ball < numBalls; ball++) {
-                System.out.println("Ball " + ball);
                 boolean overlaps;
                 do {
                     overlaps = false;
                     x = (int) (Math.random() * GRID_SQUARES);
                     y = (int) (Math.random() * GRID_SQUARES);
                     for (Ball otherBall : allBalls) {
-                        System.out.println("other ball at: " + otherBall.getX() + " " + otherBall.getY());
                         if (otherBall.contains(new Point(x * SPACE_WIDTH + MARGIN + BOARD_X, y * SPACE_WIDTH + MARGIN + BOARD_Y))) {
-                            System.out.println("overlaps");
                             overlaps = true;
                         }
                     }
@@ -571,6 +566,7 @@ public class MySurfaceView extends SurfaceView implements
             allBalls.remove(thisBall);
         }
         canInteract = true;
+        checkForWin();
     }
 
     /**
@@ -835,7 +831,6 @@ public class MySurfaceView extends SurfaceView implements
             if (otherBall!=null)
             fling(thisBall, direction, otherBall);
             else fling(thisBall, direction);
-            checkForWin();
         }
 
     }
@@ -889,15 +884,15 @@ public class MySurfaceView extends SurfaceView implements
         long startTime;
         long currentTime;
         long lastDrawTime;
-        MySurfaceView mySurfaceView;
+        FlingSurfaceView flingSurfaceView;
         private SurfaceHolder surfaceHolder;
 
         public DrawThread(SurfaceHolder surfaceHolder,
-                          MySurfaceView mySurfaceView) {
+                          FlingSurfaceView flingSurfaceView) {
             startTime = System.currentTimeMillis();
             lastDrawTime = startTime;
             this.surfaceHolder = surfaceHolder;
-            this.mySurfaceView = mySurfaceView;
+            this.flingSurfaceView = flingSurfaceView;
         }
 
 
@@ -924,7 +919,7 @@ public class MySurfaceView extends SurfaceView implements
                         try {
                             canvas = surfaceHolder.lockCanvas(null);
                             synchronized (surfaceHolder) {
-                                mySurfaceView.onDraw(canvas);
+                                flingSurfaceView.onDraw(canvas);
 //                                delay(2);
                             }
                         } finally {

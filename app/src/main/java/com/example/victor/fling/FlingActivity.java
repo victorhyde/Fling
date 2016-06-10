@@ -1,6 +1,5 @@
 package com.example.victor.fling;
 
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.content.DialogInterface;
@@ -9,18 +8,15 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.transition.Fade;
-import android.transition.Slide;
 import android.util.Log;
-import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewTreeObserver;
 
 public class FlingActivity extends AppCompatActivity implements OnClickListener {
 
     private static final String TAG = "CL_FireworksActivity";
-    public MySurfaceView mySurfaceView;
+    public FlingSurfaceView flingSurfaceView;
     boolean firstRun=true;
 Intent intent;
     /** Called when the activity is first created. */
@@ -28,19 +24,19 @@ Intent intent;
     public void onCreate(Bundle savedInstanceState) {
         try {
             super.onCreate(savedInstanceState);
-            setContentView(R.layout.activity_fling);if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
                 // Call some material design APIs here
-                getWindow().setEnterTransition(new Slide(Gravity.RIGHT));
-                getWindow().setExitTransition(new Slide(Gravity.LEFT));
+                getWindow().setEnterTransition(new Fade());
+                getWindow().setExitTransition(new Fade());
             } else {
                 // Implement this feature without material design
             }
-
+            setContentView(R.layout.activity_fling);
             findViewById(R.id.pause).setOnClickListener(this);
             findViewById(R.id.undo).setOnClickListener(this);
             findViewById(R.id.hint).setOnClickListener(this);
 
-            mySurfaceView = (MySurfaceView) (findViewById(R.id.surfaceView1));
+            flingSurfaceView = (FlingSurfaceView) (findViewById(R.id.surfaceView1));
         } catch (Exception e) {
             Log.d(TAG, "Failed to create; " + e.getMessage());
             e.printStackTrace();
@@ -48,12 +44,13 @@ Intent intent;
     }
     public void onPause(){
         super.onPause();
-        mySurfaceView.stop();
+        flingSurfaceView.stop();
     }
 
     public void banana(int time, int highScore){
 // 1. Instantiate an AlertDialog.Builder with its constructor
         intent = new Intent(this, MainActivity.class);
+        intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
         String message;
         if (time == highScore) message = String.format("Your time: %d:%02d\nNew high score!", time / 60, time % 60);
         else message = String.format("Your time: %d:%02d\nHigh score: %d:%02d", time / 60, time % 60,highScore / 60, highScore% 60);
@@ -62,13 +59,12 @@ Intent intent;
             public void onClick(DialogInterface dialog, int id) {
                 Intent intent = getIntent();
                 int numBalls = intent.getIntExtra(DifficultyActivity.DIFFICULTY,8);
-                mySurfaceView.loadGame(numBalls);
+                flingSurfaceView.loadGame(numBalls);
             }
         });
         builder.setNegativeButton(R.string.main, new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface dialog, int id) {
                 startActivity(intent);
-                finish();
             }
         });
 
@@ -82,7 +78,6 @@ Intent intent;
                 if (keyCode == KeyEvent.KEYCODE_BACK) {
                     //go to main menu
                     startActivity(intent);
-                    finish();
                 }
                 return true;
             }
@@ -104,12 +99,12 @@ Intent intent;
             firstRun=false;
             Intent intent = getIntent();
             int numBalls = intent.getIntExtra(DifficultyActivity.DIFFICULTY,8);
-            mySurfaceView.loadGame(numBalls);
+            flingSurfaceView.loadGame(numBalls);
         }
         if (focus){
-        mySurfaceView.resume();
+        flingSurfaceView.resume();
         }
-        else if (!focus)mySurfaceView.stop();
+        else if (!focus) flingSurfaceView.stop();
         // get the imageviews width and height here
     }
     // This snippet hides the system bars.
@@ -139,13 +134,13 @@ Intent intent;
     public void onClick(View v) {
         switch (v.getId()) {
             case R.id.pause:
-                mySurfaceView.pause();
+                flingSurfaceView.pause();
                 break;
             case R.id.undo:
-                mySurfaceView.undo();
+                flingSurfaceView.undo();
                 break;
             case R.id.hint:
-                mySurfaceView.showHint();
+                flingSurfaceView.showHint();
                 break;
         }
     }

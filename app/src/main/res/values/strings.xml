@@ -2,6 +2,6 @@
     <string name="app_name">Fling</string>
     <string name="solved_title">Congratulations!</string>
     <string name="main">Main menu</string>
-    <string name="next_level">Next level</string>
+    <string name="next_level">Another one</string>
     <string name="easy_high_score">-1</string>
 </resources>

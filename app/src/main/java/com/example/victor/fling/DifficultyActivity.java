@@ -1,5 +1,6 @@
 package com.example.victor.fling;
 
+import android.app.ActivityOptions;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
@@ -7,6 +8,7 @@ import android.graphics.Typeface;
 import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.transition.Fade;
 import android.transition.Slide;
 import android.view.Gravity;
 import android.view.KeyEvent;
@@ -46,13 +48,6 @@ public class DifficultyActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_fling);if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            // Call some material design APIs here
-            getWindow().setEnterTransition(new Slide(Gravity.RIGHT));
-            getWindow().setExitTransition(new Slide(Gravity.LEFT));
-        } else {
-            // Implement this feature without material design
-        }
         setContentView(R.layout.activity_main);
         TextView title = (TextView) findViewById(R.id.name);
         title.setText("Select difficulty:");
@@ -63,12 +58,21 @@ public class DifficultyActivity extends AppCompatActivity {
 
         ListView listView = (ListView) findViewById(R.id.menu);
         listView.setAdapter(adapter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setEnterTransition(new Slide(Gravity.RIGHT));
+            getWindow().setExitTransition(new Fade());
+            System.out.println("custom enter transition");
+        } else {
+            // Implement this feature without material design
+        }
     }
 
     public void play(int numBalls) {
         Intent intent = new Intent(this, FlingActivity.class);
         intent.putExtra(DIFFICULTY,numBalls);
-        startActivity(intent);
-        finish();
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+//            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
+//        else
+            startActivity(intent);
     }
 }
