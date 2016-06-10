@@ -148,7 +148,10 @@ public class FlingSurfaceView extends SurfaceView implements
             highScore = sharedPref.getInt("hard high score", -1);
 
         } else highScore = -1;
-        if (highScore == -1) highScoreString = "";
+        if (highScore == -1){
+            highScoreString = "";
+            highScoreLabel = "";
+        }
         else
             highScoreString = String.format("%d:%02d", highScore / 60, highScore % 60);
 
@@ -627,7 +630,7 @@ public class FlingSurfaceView extends SurfaceView implements
             editor.apply();
             activity.runOnUiThread(new Runnable() {
                 public void run() {
-                    activity.banana(time, highScore);
+                    activity.showMessage(time, highScore);
                 }
             });
 
