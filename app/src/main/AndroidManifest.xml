@@ -8,21 +8,24 @@
         android:label="@string/app_name"
         android:supportsRtl="true"
         android:theme="@style/AppTheme.NoActionBar">
-        <activity android:name=".MainActivity"
+        <activity
+            android:name=".MainActivity"
             android:screenOrientation="portrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".DifficultyActivity"
+        <activity
+            android:name=".DifficultyActivity"
             android:parentActivityName=".MainActivity"
-            android:screenOrientation="portrait">
-        </activity>
-        <activity android:name=".FlingActivity"
+            android:screenOrientation="portrait"></activity>
+        <activity
+            android:name=".FlingActivity"
             android:parentActivityName=".DifficultyActivity"
-            android:screenOrientation="portrait">
-        </activity>
+            android:screenOrientation="portrait"></activity>
+        <activity android:name=".InstructionsActivity"></activity>
     </application>
 
 </manifest>
