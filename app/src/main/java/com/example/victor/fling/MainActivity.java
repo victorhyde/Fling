@@ -1,10 +1,15 @@
 package com.example.victor.fling;
 
+import android.app.ActivityOptions;
 import android.content.Intent;
 import android.graphics.Color;
 import android.graphics.Typeface;
+import android.os.Build;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.transition.Fade;
+import android.transition.Slide;
+import android.view.Gravity;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
@@ -28,7 +33,7 @@ MenuAdapter adapter;
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-TextView title = (TextView)findViewById(R.id.name);
+        TextView title = (TextView)findViewById(R.id.name);
         Typeface font = Typeface.createFromAsset(getAssets(),"fonts/Moon Light.otf");
         title.setTypeface(font);
 
@@ -36,11 +41,18 @@ TextView title = (TextView)findViewById(R.id.name);
 
         ListView listView = (ListView) findViewById(R.id.menu);
         listView.setAdapter(adapter);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().setExitTransition(new Fade());
+        } else {
+            // Implement this feature without material design
+        }
     }
 
     public void play(){
         Intent intent = new Intent(this, DifficultyActivity.class);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
+        else
         startActivity(intent);
-        finish();
     }
 }
