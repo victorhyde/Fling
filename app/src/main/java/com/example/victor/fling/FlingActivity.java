@@ -47,7 +47,7 @@ Intent intent;
         flingSurfaceView.stop();
     }
 
-    public void banana(int time, int highScore){
+    public void showMessage(int time, int highScore){
 // 1. Instantiate an AlertDialog.Builder with its constructor
         intent = new Intent(this, MainActivity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
