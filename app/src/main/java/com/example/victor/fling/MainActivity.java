@@ -27,7 +27,12 @@ MenuAdapter adapter;
         }
     });
     MenuOption levelSelect = new MenuOption(Color.rgb(33,150,243),R.drawable.ic_view_module_white_48dp,"Select level",null);
-    MenuOption help = new MenuOption(Color.rgb(156,39,176),R.drawable.ic_help_outline_white_48dp,"How to play",null);
+    MenuOption help = new MenuOption(Color.rgb(156,39,176),R.drawable.ic_help_outline_white_48dp,"How to play",new View.OnClickListener() {
+        @Override
+        public void onClick(View view) {
+            instructions();
+        }
+    });
     MenuOption[]options = {play,levelSelect,help};
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,9 +55,16 @@ MenuAdapter adapter;
 
     public void play(){
         Intent intent = new Intent(this, DifficultyActivity.class);
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
-            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
-        else
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+//            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
+//        else
         startActivity(intent);
+    }
+    public void instructions(){
+        Intent intent = new Intent(this, InstructionsActivity.class);
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+//            startActivity(intent, ActivityOptions.makeSceneTransitionAnimation(this).toBundle());
+//        else
+            startActivity(intent);
     }
 }

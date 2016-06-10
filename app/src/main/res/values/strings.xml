@@ -4,4 +4,8 @@
     <string name="main">Main menu</string>
     <string name="next_level">Another one</string>
     <string name="easy_high_score">-1</string>
+    <string name="instructions_1">The goal is to remove all balls but one from the grid, by flinging balls into other balls.
+    You can\'t fling a ball into an adjacent ball or directly off the grid.</string>
+    <string name="instructions_2">Use the undo and hint buttons to help you along the way. Using a hint adds a penalty of 10 seconds to your time,
+    so only use it if you really need to!</string>
 </resources>
