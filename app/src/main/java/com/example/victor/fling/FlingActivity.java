@@ -46,6 +46,11 @@ Intent intent;
         super.onPause();
         flingSurfaceView.stop();
     }
+    public void onResume(){
+        super.onResume();
+        if (!firstRun)
+        flingSurfaceView.resume();
+    }
 
     public void showMessage(int time, int highScore){
 // 1. Instantiate an AlertDialog.Builder with its constructor
@@ -101,10 +106,10 @@ Intent intent;
             int numBalls = intent.getIntExtra(DifficultyActivity.DIFFICULTY,8);
             flingSurfaceView.loadGame(numBalls);
         }
-        if (focus){
-        flingSurfaceView.resume();
-        }
-        else if (!focus) flingSurfaceView.stop();
+//        if (focus){
+//        flingSurfaceView.resume();
+//        }
+//        else if (!focus) flingSurfaceView.stop();
         // get the imageviews width and height here
     }
     // This snippet hides the system bars.

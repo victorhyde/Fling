@@ -124,7 +124,7 @@ public class FlingSurfaceView extends SurfaceView implements
         SPEED_BEFORE_STOPPING = Math.sqrt(2 * ACCELERATION * STOP_DISTANCE);
         BALL_STOP_FRAMES = (int) (Math.floor(SPEED_BEFORE_STOPPING / ACCELERATION));
         MIN_DISTANCE = SPACE_WIDTH;
-        isDone = false;
+//        isDone = false;
         paused = false;
         numBalls = balls;
         allBalls = new ArrayList<Ball>();
@@ -163,6 +163,7 @@ public class FlingSurfaceView extends SurfaceView implements
         timeLabelWidth = paint.measureText(timeLabel);
         paint.setTextSize(bigFont);
         timeWidth = paint.measureText(timeString);
+        this.resume();
     }
 
     public void createLevel(int numBalls) {
@@ -353,16 +354,20 @@ public class FlingSurfaceView extends SurfaceView implements
         }
         if (!paused) {
             synchronized (allBalls) {
+                int ballColor;
                 for (Ball thisBall : allBalls) {
                     if (thisBall.intersects(BOARD)) {
 //                        paint.setColor(Color.rgb(120,120,120));
 //                        canvas.drawCircle(thisBall.getX() + thisBall.ballWidth / 2+MARGIN/4, thisBall.getY() + thisBall.ballWidth / 2+MARGIN/4, thisBall.ballWidth / 2, paint);
-                        paint.setColor(thisBall.ballColor());
+                        ballColor =thisBall.ballColor();
+                        paint.setColor(ballColor);
+                        paint.setShadowLayer(4.0f, 0, 1.0f, Color.argb(Color.alpha(ballColor)/4,0,0,0));
                         canvas.drawCircle(thisBall.getX() + BALL_WIDTH / 2, thisBall.getY() + BALL_WIDTH / 2, thisBall.ballWidth / 2, paint);
                     }
                 }
             }
         }
+        paint.setShadowLayer(0,0,0,0);
     }
 
 
